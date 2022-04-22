@@ -1,0 +1,81 @@
+function fn_Update_Main() {
+  // Declare and Initiate the WSD SpreadSheet
+  var obj_Sheet_WSD = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("WCD")
+  var obj_Sheet_Main = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Main")
+
+  // Get the Row Number of the Last Used Row on the Main Sheet
+  var dbl_Main_Last_Used_Row = obj_Sheet_Main.getDataRange().getLastRow()+1
+  
+  // Define Destination Columns on Main Sheet
+  const int_Main_Date_Column = 1
+  const int_Main_UserName_Column = 2
+
+  // Decalare and Initiate the Headings on the Sheet
+  var rng_Column_Heading = obj_Sheet_WSD.getRange(1,1,1,obj_Sheet_WSD.getLastColumn())
+
+  // Declare and Initiate the Used Range on the Sheet
+  var rng_WSD_Used_Range = obj_Sheet_WSD.getRange(1,1,obj_Sheet_WSD.getLastRow(),obj_Sheet_WSD.getLastColumn())
+
+  // Remove the already existing filter
+  var bool_Filter_Exists = rng_WSD_Used_Range.getFilter()
+  if (bool_Filter_Exists) {
+    bool_Filter_Exists.remove()
+  }
+  
+  //Create Filter Text to find Text in the Column Headings
+  //Find Class Column
+  var tf_Class = rng_Column_Heading.createTextFinder("Class")
+  var rf_Class_Result = tf_Class.findNext()
+
+  //Find Current Date Column
+  var tf_Current_Date = rng_Column_Heading.createTextFinder("Current Date")
+  var rf_Current_Date_Result = tf_Current_Date.findNext()
+
+  //Find UserName Column
+  var tf_UserName = rng_Column_Heading.createTextFinder("Username")
+  var rf_UserName_Result = tf_UserName.findNext()
+
+  //Create Filter on Class Column using range rf_Class_Result
+  const filer_Class = rng_WSD_Used_Range.createFilter()
+  const filter_Criteria = SpreadsheetApp.newFilterCriteria().whenTextEqualTo(["VIP"]) //Single Value
+  //const filter_Criteria = SpreadsheetApp.newFilterCriteria().setHiddenValues(['Jr. VIP', 'REG', 'VVIP']) //Multiple Values Hide
+  const filter_Add_Criteria = filer_Class.setColumnFilterCriteria(rf_Class_Result.getColumn(),filter_Criteria)
+
+  // Get the First Visible Row after applying the Filter
+  var int_First_Visible_Row = 1
+  while (obj_Sheet_WSD.isRowHiddenByFilter(rf_Current_Date_Result.offset(int_First_Visible_Row,0).getRow())) {
+    int_First_Visible_Row++
+    //Browser.msgBox (obj_Sheet_WSD.isRowHiddenByFilter(rf_Current_Date_Result.offset(int_First_Visible_Row,0).getRow()))
+  }
+
+
+  // Copy Paste Value to Main Sheet
+  // Data Set# 1 - Date
+  var rng_Copy_Start = rf_Current_Date_Result.offset(int_First_Visible_Row,0).getA1Notation()
+  var rng_Copy_End = rf_Current_Date_Result.getNextDataCell(SpreadsheetApp.Direction.DOWN).getA1Notation()
+  var rng_Final_Copy = rng_Copy_Start + ":" + rng_Copy_End
+  obj_Sheet_WSD.getRange(rng_Final_Copy).activate()
+  obj_Sheet_WSD.getRange(rng_Final_Copy).copyTo(obj_Sheet_Main.getRange(dbl_Main_Last_Used_Row,1))
+
+  // Data Set# 2 - UserName
+  var rng_Copy_Start = rf_UserName_Result.offset(int_First_Visible_Row,0).getA1Notation()
+  var rng_Copy_End = rf_UserName_Result.getNextDataCell(SpreadsheetApp.Direction.DOWN).getA1Notation()
+  var rng_Final_Copy = rng_Copy_Start + ":" + rng_Copy_End
+  obj_Sheet_WSD.getRange(rng_Final_Copy).activate()
+  obj_Sheet_WSD.getRange(rng_Final_Copy).copyTo(obj_Sheet_Main.getRange(dbl_Main_Last_Used_Row,2))
+
+  // Data Set# 3 - Last Column Date
+  var rng_Copy_Start = rf_Current_Date_Result.offset(int_First_Visible_Row,0).getA1Notation()
+  var rng_Copy_End = rf_Current_Date_Result.getNextDataCell(SpreadsheetApp.Direction.DOWN).getA1Notation()
+  var rng_Final_Copy = rng_Copy_Start + ":" + rng_Copy_End
+  obj_Sheet_WSD.getRange(rng_Final_Copy).activate()
+  obj_Sheet_WSD.getRange(rng_Final_Copy).copyTo(obj_Sheet_Main.getRange(dbl_Main_Last_Used_Row,6))
+  
+  //obj_Sheet_WSD.getCurrentCell().getNextDataCell(SpreadsheetApp.Direction.DOWN).activate()
+  //Browser.msgBox(obj_Sheet_WSD.getDataRange().getA1Notation()) //Get the Entire Data Range of a Sheet
+  //Browser.msgBox(obj_Sheet_WSD.getCurrentCell().getA1Notation()) //Get the Current Active Cell
+  //Browser.msgBox(obj_Sheet_WSD.getSelection().getNextDataRange(SpreadsheetApp.Direction.DOWN).getA1Notation()) //Get Range from Current Selection to the end of the Column - Direction Down
+  //obj_Sheet_WSD.getSelection().getNextDataRange(SpreadsheetApp.Direction.DOWN).activate() //Activate the Current Selection
+
+
+}
